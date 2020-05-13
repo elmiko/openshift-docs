@@ -6,8 +6,8 @@
 [id="machine-health-checks-creating_{context}"]
 = Creating a MachineHealthCheck resource
 
-You can create a MachineHealthCheck resource for all MachinePools in your
-cluster except the `master` pool.
+You can create a MachineHealthCheck resource for all MachineSets in your
+cluster, but you should not create one that targets `master` Machines.
 
 .Prerequisites
 

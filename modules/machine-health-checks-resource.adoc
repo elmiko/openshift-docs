@@ -31,6 +31,7 @@ spec:
     timeout: "300s" <4>
     status: "Unknown"
   maxUnhealthy: "40%" <5>
+  nodeStartupTimeout: "10m" <6>
 ----
 <1> Specify the name of the MachineHealthCheck to deploy.
 <2> Specify a label for the machine pool that you want to check.
@@ -39,9 +40,53 @@ format. For example, `prod-node-us-east-1a`.
 <4> Specify the timeout duration for a node condition. If a condition is met for the duration of the timeout, the Machine will be remediated. Long timeouts can result in long periods of downtime for the workload on the unhealthy Machine.
 <5> Specify the amount of unhealthy machines allowed in the targeted pool of
 machines. This can be set as a percentage or an integer.
+<6> Specify the timeout duration that a MachineHealthCheck must wait for a node to join the cluster before a Machine is determined to be unhealthy.
 
 [NOTE]
 ====
 The `matchLabels` are examples only; you must map your machine groups based on
 your specific needs.
+====
+
+[id="machine-health-checks-short-circuiting_{context}"]
+== Short-circuiting MachineHealthCheck remediation
+
+To ensure that MachineHealthChecks remediate Machines only when the cluster is healthy, short circuiting is implemented to prevent further remediation.
+Short-circuiting is configured through the `maxUnhealthy` field in the MachineHealthCheck resource.
+
+If the user defines a value for the `maxUnhealthy` field,
+before remediating any Machines, the MachineHealthCheck compares the value of `maxUnhealthy`
+with the number of Machines within its target pool that it has determined to be unhealthy.
+If the number of unhealthy Machines exceeds the limit set by `maxUnhealthy`, remediation is not performed.
+
+[IMPORTANT]
+====
+If `maxUnhealthy` is not set, the value defaults to `100%`.
+Therefore, the short-circuiting mechanism is disabled by default and Machines are remediated regardless of the state of the cluster.
+====
+
+The `maxUnhealthy` field can be set as either an integer or percentage.
+There are different remediation implementations depending on the `maxUnhealthy` value.
+
+=== With an absolute value
+
+If `maxUnhealthy` is set to `2`:
+* If 2 or fewer nodes are unhealthy, remediation will be performed
+* If 3 or more nodes are unhealthy, remediation will not be performed
+
+These values are independent of how many Machines are being checked by the MachineHealthCheck.
+
+=== With percentages
+
+If `maxUnhealthy` is set to `40%` and there are 25 Machines being checked:
+* If 10 or fewer nodes are unhealthy, remediation will be performed
+* If 11 or more nodes are unhealthy, remediation will not be performed
+
+If `maxUnhealthy` is set to `40%` and there are 6 Machines being checked:
+* If 2 or fewer nodes are unhealthy, remediation will be performed
+* If 3 or more nodes are unhealthy, remediation will not be performed
+
+[NOTE]
+====
+When the percentage of `maxUnhealthy` Machines that are checked is not a whole number, the allowed number of Machines is rounded down.
 ====

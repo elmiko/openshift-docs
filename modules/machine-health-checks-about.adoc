@@ -6,26 +6,41 @@
 [id="machine-health-checks-about_{context}"]
 = About MachineHealthChecks
 
-MachineHealthChecks automatically repairs unhealthy Machines in a particular
-MachinePool.
+A MachineHealthCheck is a resource which allows users to define conditions under
+which Machines within a Cluster should be considered unhealthy and should be
+automatically remediated.
 
-To monitor machine health, you create a resource to define the
-configuration for a controller. You set a condition to check for, such as
-staying in the `NotReady` status for 15 minutes or displaying a permanent condition
-in the node-problem-detector, and a label for the set of machines to monitor.
+When defining a MachineHealthCheck, users specify conditions to check for and a
+timeout for each of the conditions.
+If any of these conditions is met on the Machine's Node for the duration of the timeout,
+the Machine will be remediated.
+The action of remediating a Machine will trigger a new Machine to be created,
+to replace the failed one.
+
+For example, you may set a condition such as staying in the `NotReady` state
+for 15 minutes or displaying a permanent condition in the node-problem-detector.
 
 [NOTE]
 ====
-You cannot apply a MachineHealthCheck to a machine with the master role.
+Please note that MachineHealthChecks currently *only* support Machines that are
+owned by a MachineSet.
+Please review the xref:#limitations-when-deploying-machinehealthchecks at the bottom of this page for
+full details of MachineHealthCheck limitations.
 ====
 
-The controller that observes a MachineHealthCheck resource checks for the status
-that you defined. If a machine fails the health check, it is automatically deleted
-and a new one is created to take its place. When a machine is deleted, you
-see a `machine deleted` event. To limit disruptive impact of the machine
-deletion, the controller drains and deletes only one node at a time. If there
-are more unhealthy machines than the `maxUnhealthy` threshold allows for in the
-targeted pool of machines, remediation stops so that manual intervention can take
-place.
+When a Machine is deleted, you will see a `machine deleted` event.
+To limit disruptive impact of the Machine deletion, if there are more unhealthy
+Machines than the `maxUnhealthy` threshold allows for in the targeted pool of Machines,
+remediation stops so that manual intervention can take place.
+See xref:../modules/machine-health-checks-resource#short-circuiting-machinehealthcheck-remediation for more details.
 
-To stop the check, you remove the resource.
+[id="machine-health-checks-limitations_{context}"]
+== Limitations when deploying MachineHealthChecks
+
+There are limitations to consider before deploying a MachineHealthCheck:
+
+* Only Machines owned by a MachineSet are remediated by a MachineHealthCheck.
+* Control Plane Machines are not currently supported and are not remediated if they are unhealthy.
+* If the node for a Machine is removed from the cluster, a MachineHealthCheck considers the Machine to be unhealthy and remediates it immediately.
+* If a node does not join the cluster for a Machine after the `nodeStartupTimeout`, the Machine is remediated.
+* If a Machine fails for any reason (the phase is `Failed`), the Machine is remediated immediately.
