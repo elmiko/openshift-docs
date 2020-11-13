@@ -24,7 +24,7 @@ for 15 minutes or displaying a permanent condition in the node-problem-detector.
 ====
 Please note that MachineHealthChecks currently *only* support Machines that are
 owned by a MachineSet.
-Please review the xref:#limitations-when-deploying-machinehealthchecks at the bottom of this page for
+Please review the <<machine-health-checks-limitations_{context}>> below for
 full details of MachineHealthCheck limitations.
 ====
 
@@ -32,7 +32,6 @@ When a Machine is deleted, you will see a `machine deleted` event.
 To limit disruptive impact of the Machine deletion, if there are more unhealthy
 Machines than the `maxUnhealthy` threshold allows for in the targeted pool of Machines,
 remediation stops so that manual intervention can take place.
-See xref:../modules/machine-health-checks-resource#short-circuiting-machinehealthcheck-remediation for more details.
 
 [id="machine-health-checks-limitations_{context}"]
 == Limitations when deploying MachineHealthChecks
